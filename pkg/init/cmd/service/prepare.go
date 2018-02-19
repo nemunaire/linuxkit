@@ -42,6 +42,7 @@ type Interface struct {
 	Name         string `yaml:"name" json:"name,omitempty"`
 	Add          string `yaml:"add" json:"add,omitempty"`
 	Peer         string `yaml:"peer" json:"peer,omitempty"`
+	VlanId       string `yaml:"vlanid" json:"vlanid,omitempty"`
 	CreateInRoot bool   `yaml:"createInRoot" json:"createInRoot"`
 }
 
@@ -251,6 +252,12 @@ func prepareProcess(pid int, runtime Runtime) error {
 				}
 				la := netlink.LinkAttrs{Name: iface.Name, Namespace: ns}
 				link = &netlink.Veth{LinkAttrs: la, PeerName: iface.Peer}
+			case "vlan":
+				if iface.VlanId == "" {
+					return fmt.Errorf("Creating a vlan interface %s requires an id to be set", iface.Name)
+				}
+				la := netlink.LinkAttrs{Name: iface.Name, Namespace: ns}
+				link = &netlink.Veth{LinkAttrs: la, VlanId: iface.VlanId}
 			default:
 				// no special creation options needed
 				la := netlink.LinkAttrs{Name: iface.Name, Namespace: ns}
