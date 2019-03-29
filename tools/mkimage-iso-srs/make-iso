@@ -1,0 +1,65 @@
+#!/bin/sh
+
+set -e
+
+mkdir -p /tmp/iso
+cd /tmp/iso
+
+# input is a tarball of filesystem on stdin with kernel in /boot
+# output is an iso on stdout
+
+# extract. BSD tar auto recognises compression, unlike GNU tar
+# only if stdin is a tty, if so need files volume mounted...
+[ -t 0 ] || bsdtar xzf -
+
+CMDLINE="$(sed 's/root=[^ ]+//' boot/cmdline)"
+rm boot/cmdline
+
+mkdir -p isolinux
+cp /usr/share/syslinux/isolinux.bin ./isolinux/
+cp /usr/share/syslinux/ldlinux.c32 ./isolinux/
+cp /usr/share/syslinux/vesamenu.c32 ./isolinux/
+cp /usr/share/syslinux/menu.c32 ./isolinux/
+cp /usr/share/syslinux/libcom32.c32 ./isolinux/
+cp /usr/share/syslinux/libutil.c32 ./isolinux/
+cp /usr/share/syslinux/poweroff.c32 ./isolinux/
+
+CFG="DEFAULT vesamenu.c32
+
+MENU RESOLUTION 1024 768
+
+menu background         #00000000 * *
+menu color title        * #FF22BBCC *
+menu color sel          * #FFFFFFFF #FF22BBCC *
+menu color hotsel       1;7;37;40 #ffffffff #76a1d0ff *
+menu tabmsg Press ENTER to boot or TAB to edit a menu entry
+
+prompt 0
+timeout 0
+
+menu title Welcome to the EPITA ADvanced LINux administration course!
+
+LABEL tutorial-go
+    MENU LABEL ^Enter tutorial
+    KERNEL /boot/kernel
+    APPEND ${CMDLINE} root=/dev/sr0 adlin.token=FILLME
+
+MENU SEPARATOR
+
+LABEL poweroff
+  MENU LABEL ^Shutdown
+  KERNEL poweroff.c32
+"
+
+printf "$CFG" > isolinux/isolinux.cfg
+
+genisoimage -o ../linuxkit-bios.iso -l -J -R \
+                -c isolinux/boot.cat  \
+                -b isolinux/isolinux.bin \
+                   -no-emul-boot -boot-load-size 4 -boot-info-table \
+		-joliet-long -input-charset utf8 \
+                -V LinuxKit .
+
+isohybrid ../linuxkit-bios.iso
+
+cat ../linuxkit-bios.iso
