@@ -19,6 +19,7 @@ var (
 		"iso":         "linuxkit/mkimage-iso:3d81e29b28ddf739becf10758eb6077b198d26d8",
 		"iso-bios":    "linuxkit/mkimage-iso-bios:131849cfc4f3ede87c2ca19b6e2a4ef86354d1ce",
 		"iso-efi":     "linuxkit/mkimage-iso-efi:667bd641fd37062eaf9d2173c768ebfcedad3876",
+		"iso-srs":     "nemunaire/mkimage-iso-srs:30f316a5aec139e7bac53fb8c2b14738123a7806",
 		"raw-bios":    "linuxkit/mkimage-raw-bios:6a2365f9c90901d7e0c70507e09a0cde23c5f321",
 		"raw-efi":     "linuxkit/mkimage-raw-efi:27de80a2180621d3d772893381a9a1b7c5fb895a",
 		"squashfs":    "linuxkit/mkimage-squashfs:c771872c292081a36333425c12e57393bd79f4e9",
@@ -69,6 +70,13 @@ var outFuns = map[string]func(string, io.Reader, int) error{
 		err := outputIso(outputImages["iso-bios"], base+".iso", image)
 		if err != nil {
 			return fmt.Errorf("Error writing iso-bios output: %v", err)
+		}
+		return nil
+	},
+	"iso-srs": func(base string, image io.Reader, size int) error {
+		err := outputIso(outputImages["iso-srs"], base+".iso", image)
+		if err != nil {
+			return fmt.Errorf("Error writing iso-srs output: %v", err)
 		}
 		return nil
 	},
